@@ -1,0 +1,26 @@
+{
+  "name": "velvetgraphite",
+  "version": "0.1.0",
+  "description": "VelvetGraphite Art Gallery - Artwork showcase with tagging and filtering",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=6.0.0"
+  },
+  "scripts": {
+    "dev:backend": "cd backend && npm run develop",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start:backend": "cd backend && npm run start",
+    "start:frontend": "cd frontend && npm run start"
+  },
+  "keywords": [
+    "art-gallery",
+    "portfolio",
+    "strapi",
+    "nextjs"
+  ],
+  "author": "VelvetGraphite",
+  "license": "MIT"
+}

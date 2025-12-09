@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build
+
+# Production
+build/
+dist/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env*.local
+.env.production
+
+# Strapi
+backend/.cache/
+backend/.tmp/
+backend/build/
+backend/dist/
+backend/.strapi-updater.json
+backend/.strapi/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+
+# Cloudinary
+.cloudinary/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
