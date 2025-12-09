@@ -1,0 +1,73 @@
+import Link from 'next/link';
+
+export default function Home() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+      <main className="mx-auto max-w-4xl px-4 py-20 text-center">
+        <h1 className="mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-6xl font-bold text-transparent md:text-8xl">
+          VelvetGraphite
+        </h1>
+        <p className="mb-4 text-xl text-gray-300 md:text-2xl">
+          Art Gallery
+        </p>
+        <p className="mb-12 text-lg text-gray-400">
+          A curated collection of artwork inspired by Reddit's creative community
+        </p>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <Link
+            href="/gallery"
+            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-pink-600 to-purple-600 px-8 py-4 text-lg font-medium text-white transition-all hover:from-pink-500 hover:to-purple-500"
+          >
+            <span className="relative flex items-center">
+              View Gallery
+              <svg
+                className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </span>
+          </Link>
+        </div>
+
+        <div className="mt-20 grid gap-8 text-left md:grid-cols-3">
+          <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
+            <div className="mb-3 text-3xl">🎨</div>
+            <h3 className="mb-2 text-lg font-semibold text-white">
+              Curated Art
+            </h3>
+            <p className="text-gray-400">
+              Hand-drawn artwork inspired by Reddit's creative community
+            </p>
+          </div>
+          <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
+            <div className="mb-3 text-3xl">🏷️</div>
+            <h3 className="mb-2 text-lg font-semibold text-white">
+              Tag Filtering
+            </h3>
+            <p className="text-gray-400">
+              Easily find artwork by tags and categories
+            </p>
+          </div>
+          <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
+            <div className="mb-3 text-3xl">✨</div>
+            <h3 className="mb-2 text-lg font-semibold text-white">
+              High Quality
+            </h3>
+            <p className="text-gray-400">
+              Optimized image delivery via Cloudinary CDN
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
