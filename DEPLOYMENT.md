@@ -34,9 +34,14 @@ This guide will walk you through deploying VelvetGraphite to Railway.
 
 ## Step 4: Deploy Backend (Strapi)
 
-1. In Railway, click "New" → "GitHub Repo" → Select `/backend` directory
-2. Or use the Monorepo settings to point to the backend folder
-3. Configure environment variables for the backend service:
+1. In Railway, click "New" → "GitHub Repo"
+2. Select your `velvetgraphite` repository
+3. Railway will create a service. Click on the service.
+4. Go to **Settings** → **General**
+5. Set **Root Directory** to: `backend`
+6. Set **Build Command** to: `npm install && npm run build`
+7. Set **Start Command** to: `npm run start`
+8. Configure environment variables for the backend service:
 
 ```bash
 # Database (automatically provided by Railway if PostgreSQL is added)
@@ -67,15 +72,18 @@ CLOUDINARY_SECRET=your-api-secret
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-4. Add build command: `npm run build`
-5. Add start command: `npm run start`
-6. Deploy!
+9. Click **Deploy** to start the backend deployment
 
 ## Step 5: Deploy Frontend (Next.js)
 
-1. In Railway, click "New" → "GitHub Repo" → Select `/frontend` directory
-2. Or configure monorepo settings for the frontend folder
-3. Configure environment variables for the frontend service:
+1. In Railway, click "New" → "GitHub Repo"
+2. Select your `velvetgraphite` repository again
+3. Railway will create another service. Click on it.
+4. Go to **Settings** → **General**
+5. Set **Root Directory** to: `frontend`
+6. Set **Build Command** to: `npm install && npm run build`
+7. Set **Start Command** to: `npm run start`
+8. Configure environment variables for the frontend service:
 
 ```bash
 # Point to your Railway backend URL
@@ -84,9 +92,9 @@ NEXT_PUBLIC_STRAPI_URL=https://your-backend-service.railway.app
 
 **Note:** Replace `your-backend-service.railway.app` with the actual URL of your deployed Strapi backend from Step 4.
 
-4. Add build command: `npm run build`
-5. Add start command: `npm run start`
-6. Deploy!
+9. Click **Deploy** to start the frontend deployment
+
+**Important:** Railway provides each service with a unique URL. You can find the backend URL in the backend service settings under **Networking**.
 
 ## Step 6: Configure Strapi CORS
 
