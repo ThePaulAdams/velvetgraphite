@@ -4,12 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 export async function getArtworks(tag?: string): Promise<Artwork[]> {
   try {
-    let url = `${API_URL}/api/artworks?populate=*&sort=createdAt:desc`;
-
-    // If tag filter is provided, add it to the query
-    if (tag) {
-      url += `&filters[tags][$contains]=${encodeURIComponent(tag)}`;
-    }
+    const url = `${API_URL}/api/artworks?populate=*&sort=createdAt:desc`;
 
     const response = await fetch(url, {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
@@ -20,7 +15,16 @@ export async function getArtworks(tag?: string): Promise<Artwork[]> {
     }
 
     const data: ArtworksResponse = await response.json();
-    return data.data;
+    let artworks = data.data;
+
+    // Filter by tag client-side (tags are JSON arrays, hard to filter server-side)
+    if (tag) {
+      artworks = artworks.filter((artwork) =>
+        artwork.tags?.some((t) => t.toLowerCase() === tag.toLowerCase())
+      );
+    }
+
+    return artworks;
   } catch (error) {
     console.error('Error fetching artworks:', error);
     return [];
