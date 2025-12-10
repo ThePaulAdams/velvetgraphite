@@ -5,17 +5,57 @@ This guide will walk you through deploying VelvetGraphite to Railway.
 ## Prerequisites
 
 - [Railway account](https://railway.app)
-- [Cloudinary account](https://cloudinary.com) (free tier)
+- [AWS account](https://aws.amazon.com) (free tier includes 5GB S3 storage for 12 months)
 - GitHub repository connected to Railway
 
-## Step 1: Set up Cloudinary
+## Step 1: Set up AWS S3
 
-1. Sign up for a free Cloudinary account at https://cloudinary.com
-2. Go to your Dashboard
-3. Note down these values:
-   - Cloud Name
-   - API Key
-   - API Secret
+1. Sign up for an AWS account at https://aws.amazon.com (if you don't have one)
+2. Go to the AWS S3 Console: https://s3.console.aws.amazon.com/
+3. Create a new S3 bucket:
+   - Click "Create bucket"
+   - **Bucket name**: Choose a unique name (e.g., `velvetgraphite-art-gallery`)
+   - **Region**: Choose your preferred region (e.g., `us-east-1`)
+   - **Block Public Access settings**: Uncheck "Block all public access"
+     - Check the acknowledgment box (your uploaded images need to be publicly accessible)
+   - Leave other settings as default
+   - Click "Create bucket"
+4. Configure bucket permissions:
+   - Click on your newly created bucket
+   - Go to the "Permissions" tab
+   - Scroll to "Bucket policy" and click "Edit"
+   - Add this policy (replace `YOUR-BUCKET-NAME` with your actual bucket name):
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Sid": "PublicReadGetObject",
+         "Effect": "Allow",
+         "Principal": "*",
+         "Action": "s3:GetObject",
+         "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+       }
+     ]
+   }
+   ```
+   - Click "Save changes"
+5. Create IAM credentials:
+   - Go to IAM Console: https://console.aws.amazon.com/iam/
+   - Click "Users" → "Create user"
+   - **User name**: `velvetgraphite-uploader`
+   - Click "Next"
+   - Select "Attach policies directly"
+   - Search for and select "AmazonS3FullAccess" (or create a custom policy with only your bucket access)
+   - Click "Next" → "Create user"
+   - Click on the created user
+   - Go to "Security credentials" tab
+   - Click "Create access key"
+   - Select "Application running outside AWS"
+   - Click "Next" → "Create access key"
+   - **IMPORTANT**: Save these credentials (you won't see them again):
+     - Access Key ID
+     - Secret Access Key
 
 ## Step 2: Create Railway Project
 
@@ -60,10 +100,11 @@ JWT_SECRET=generateRandomString6
 HOST=0.0.0.0
 PORT=1337
 
-# Cloudinary (from Step 1)
-CLOUDINARY_NAME=your-cloud-name
-CLOUDINARY_KEY=your-api-key
-CLOUDINARY_SECRET=your-api-secret
+# AWS S3 (from Step 1)
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_ACCESS_SECRET=your-secret-access-key
+AWS_REGION=us-east-1
+AWS_BUCKET_NAME=your-bucket-name
 ```
 
 **To generate secure random strings:**
@@ -122,7 +163,7 @@ By default, Strapi content is private. To make artworks publicly accessible:
 3. Fill in the details:
    - **Title**: e.g., "Portrait Study"
    - **Description**: Optional description
-   - **Image**: Upload your artwork (will be stored in Cloudinary)
+   - **Image**: Upload your artwork (will be stored in AWS S3)
    - **Tags**: Add tags as JSON array, e.g., `["portrait", "sketch", "redhead"]`
    - **Reddit Username**: e.g., "cutepillow"
    - **Reddit Post URL**: Optional link to source
@@ -147,9 +188,10 @@ You should now see your artwork in the gallery! 🎨
 | `ADMIN_JWT_SECRET` | Admin JWT secret | `random-string` |
 | `TRANSFER_TOKEN_SALT` | Transfer token salt | `random-string` |
 | `JWT_SECRET` | JWT secret | `random-string` |
-| `CLOUDINARY_NAME` | Cloudinary cloud name | `your-cloud-name` |
-| `CLOUDINARY_KEY` | Cloudinary API key | `123456789012345` |
-| `CLOUDINARY_SECRET` | Cloudinary API secret | `your-secret` |
+| `AWS_ACCESS_KEY_ID` | AWS access key ID | `AKIAIOSFODNN7EXAMPLE` |
+| `AWS_ACCESS_SECRET` | AWS secret access key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `AWS_REGION` | AWS S3 region | `us-east-1` |
+| `AWS_BUCKET_NAME` | S3 bucket name | `velvetgraphite-art-gallery` |
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `1337` |
 
@@ -161,9 +203,10 @@ You should now see your artwork in the gallery! 🎨
 ## Troubleshooting
 
 ### Images not loading
-- Check that Cloudinary credentials are correct in backend env vars
+- Check that AWS S3 credentials are correct in backend env vars
+- Verify that your S3 bucket has the correct public access policy
 - Verify that `NEXT_PUBLIC_STRAPI_URL` in frontend points to the correct backend URL
-- Check browser console for CORS errors
+- Check browser console for CORS errors or 403 errors (permission denied)
 
 ### Cannot create admin account
 - Make sure backend is fully deployed and running

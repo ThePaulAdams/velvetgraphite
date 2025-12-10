@@ -8,7 +8,7 @@ A beautiful, modern art gallery website to showcase artwork with advanced taggin
 - 🖼️ **Gallery View**: Responsive grid layout with stunning visuals
 - 🏷️ **Smart Tagging**: Organize and filter artwork by custom tags
 - 🔍 **Search**: Quick filtering by tags (e.g., "cutepillow", "redhead")
-- ☁️ **Cloud Storage**: Automatic image optimization via Cloudinary
+- ☁️ **Cloud Storage**: Reliable image storage via AWS S3
 - 📱 **Responsive**: Works beautifully on mobile, tablet, and desktop
 - ⚡ **Fast**: Optimized with Next.js 16 and server-side rendering
 
@@ -18,7 +18,7 @@ A beautiful, modern art gallery website to showcase artwork with advanced taggin
 - **Frontend**: Next.js 16 with TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: PostgreSQL (Railway)
-- **Image Storage**: Cloudinary
+- **Image Storage**: AWS S3
 - **Hosting**: Railway
 
 ## Project Structure
@@ -46,7 +46,7 @@ velvetgraphite/
 - Node.js 20.x - 24.x
 - npm or yarn
 - PostgreSQL database (for production)
-- Cloudinary account (free tier)
+- AWS account (free tier includes 5GB S3 storage for 12 months)
 
 ### Local Development
 
@@ -109,7 +109,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 3. Fill in the details:
    - **Title**: Name of the artwork
    - **Description**: Optional description
-   - **Image**: Upload your artwork (stored in Cloudinary)
+   - **Image**: Upload your artwork (stored in AWS S3)
    - **Tags**: Add tags as JSON array: `["tag1", "tag2", "tag3"]`
    - **Reddit Username**: Subject's username (optional)
    - **Reddit Post URL**: Link to original post (optional)
@@ -133,9 +133,10 @@ API_TOKEN_SALT=your-salt
 ADMIN_JWT_SECRET=your-secret
 TRANSFER_TOKEN_SALT=your-salt
 JWT_SECRET=your-secret
-CLOUDINARY_NAME=your-cloudinary-name
-CLOUDINARY_KEY=your-cloudinary-key
-CLOUDINARY_SECRET=your-cloudinary-secret
+AWS_ACCESS_KEY_ID=your-aws-access-key-id
+AWS_ACCESS_SECRET=your-aws-secret-access-key
+AWS_REGION=us-east-1
+AWS_BUCKET_NAME=your-bucket-name
 ```
 
 ### Frontend
@@ -148,7 +149,7 @@ NEXT_PUBLIC_STRAPI_URL=https://your-backend-url.railway.app
 ### Artwork Content Type
 Each artwork includes:
 - Title and description
-- High-quality image (via Cloudinary)
+- High-quality image (via AWS S3)
 - Multiple tags for categorization
 - Reddit username and post URL reference
 - Date drawn
@@ -176,5 +177,5 @@ MIT
 
 - Built with [Strapi](https://strapi.io)
 - Powered by [Next.js](https://nextjs.org)
-- Images hosted on [Cloudinary](https://cloudinary.com)
+- Images hosted on [AWS S3](https://aws.amazon.com/s3/)
 - Deployed on [Railway](https://railway.app)

@@ -47,8 +47,8 @@ backend/.strapi/
 # OS
 Thumbs.db
 
-# Cloudinary
-.cloudinary/
+# AWS
+.aws/
 
 # Database
 *.db
