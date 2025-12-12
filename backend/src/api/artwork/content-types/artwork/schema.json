@@ -8,7 +8,7 @@
     "description": "Art pieces for the VelvetGraphite gallery"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
