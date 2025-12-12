@@ -46,22 +46,12 @@
       "type": "integer",
       "default": 0
     },
-    "price": {
-      "type": "float",
-      "pluginOptions": {
-        "content-manager": {
-          "visible": true
-        }
-      }
+    "salePrice": {
+      "type": "float"
     },
-    "sold": {
+    "isSold": {
       "type": "boolean",
-      "default": false,
-      "pluginOptions": {
-        "content-manager": {
-          "visible": true
-        }
-      }
+      "default": false
     }
   }
 }

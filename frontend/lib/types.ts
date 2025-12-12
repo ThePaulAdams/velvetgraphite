@@ -32,8 +32,8 @@ export interface Artwork {
   dateDrawn?: string;
   featured: boolean;
   views: number;
-  price?: number;
-  sold: boolean;
+  salePrice?: number;
+  isSold: boolean;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;

@@ -55,7 +55,7 @@ export default async function ArtworkDetailPage({
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
-            {artwork.sold && (
+            {artwork.isSold && (
               <div className="absolute right-0 top-0 m-6 rotate-12 bg-red-600 px-6 py-3 text-xl font-bold uppercase tracking-wider text-white shadow-xl">
                 Sold
               </div>
@@ -67,9 +67,9 @@ export default async function ArtworkDetailPage({
               <h1 className="text-4xl font-bold text-white">
                 {artwork.title}
               </h1>
-              {artwork.price && (
+              {artwork.salePrice && (
                 <span className="ml-4 whitespace-nowrap text-3xl font-bold text-pink-400">
-                  ${artwork.price}
+                  ${artwork.salePrice}
                 </span>
               )}
             </div>
@@ -83,8 +83,8 @@ export default async function ArtworkDetailPage({
             <ArtworkActions
               artworkId={artwork.documentId}
               artworkTitle={artwork.title}
-              price={artwork.price}
-              sold={artwork.sold}
+              price={artwork.salePrice}
+              sold={artwork.isSold}
             />
 
             {artwork.tags && artwork.tags.length > 0 && (
