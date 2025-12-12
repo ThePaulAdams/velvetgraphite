@@ -15,17 +15,17 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }) {
-    // Clear Content Manager configuration for Artwork to force regeneration
+    // Clear Content Manager configuration for Artwork only to force regeneration
     // This ensures new fields (price, sold) appear in the edit view
     try {
-      await strapi.db.query('strapi::core-store').deleteMany({
+      const result = await strapi.db.query('strapi::core-store').deleteMany({
         where: {
-          key: {
-            $contains: 'content_manager_configuration',
-          },
+          key: 'plugin_content_manager_configuration_content_types::api::artwork.artwork',
         },
       });
-      strapi.log.info('Cleared Content Manager configuration - will regenerate with all fields');
+      if (result.count > 0) {
+        strapi.log.info('Cleared Artwork Content Manager configuration - will regenerate with all fields');
+      }
     } catch (error) {
       strapi.log.warn('Could not clear Content Manager configuration:', error.message);
     }
