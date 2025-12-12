@@ -47,11 +47,13 @@
       "default": 0
     },
     "price": {
-      "type": "float"
+      "type": "float",
+      "private": false
     },
     "sold": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "private": false
     }
   }
 }
