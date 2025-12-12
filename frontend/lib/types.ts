@@ -32,6 +32,8 @@ export interface Artwork {
   dateDrawn?: string;
   featured: boolean;
   views: number;
+  price?: number;
+  sold: boolean;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -48,4 +50,22 @@ export interface ArtworksResponse {
       total: number;
     };
   };
+}
+
+export interface SalesInquiry {
+  name: string;
+  email: string;
+  phone?: string;
+  message?: string;
+  artworkTitle?: string;
+  artworkId?: string;
+}
+
+export interface CustomWorkRequest {
+  name: string;
+  email: string;
+  phone?: string;
+  description: string;
+  budget?: string;
+  timeline?: string;
 }

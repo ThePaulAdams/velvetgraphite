@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sales_inquiries",
+  "info": {
+    "singularName": "sales-inquiry",
+    "pluralName": "sales-inquiries",
+    "displayName": "Sales Inquiry",
+    "description": "Purchase inquiries from potential buyers"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "message": {
+      "type": "text"
+    },
+    "artworkTitle": {
+      "type": "string"
+    },
+    "artworkId": {
+      "type": "string"
+    }
+  }
+}

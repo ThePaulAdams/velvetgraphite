@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "custom_work_requests",
+  "info": {
+    "singularName": "custom-work-request",
+    "pluralName": "custom-work-requests",
+    "displayName": "Custom Work Request",
+    "description": "Requests for custom artwork or commissions"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "budget": {
+      "type": "string"
+    },
+    "timeline": {
+      "type": "string"
+    }
+  }
+}

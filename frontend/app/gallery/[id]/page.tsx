@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getArtwork, getImageUrl } from '@/lib/api';
+import ArtworkActions from '@/components/ArtworkActions';
 
 export default async function ArtworkDetailPage({
   params,
@@ -54,18 +55,37 @@ export default async function ArtworkDetailPage({
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
+            {artwork.sold && (
+              <div className="absolute right-0 top-0 m-6 rotate-12 bg-red-600 px-6 py-3 text-xl font-bold uppercase tracking-wider text-white shadow-xl">
+                Sold
+              </div>
+            )}
           </div>
 
           <div className="text-gray-200">
-            <h1 className="mb-4 text-4xl font-bold text-white">
-              {artwork.title}
-            </h1>
+            <div className="mb-4 flex items-start justify-between">
+              <h1 className="text-4xl font-bold text-white">
+                {artwork.title}
+              </h1>
+              {artwork.price && (
+                <span className="ml-4 whitespace-nowrap text-3xl font-bold text-pink-400">
+                  ${artwork.price}
+                </span>
+              )}
+            </div>
 
             {artwork.description && (
               <p className="mb-6 text-lg text-gray-300">
                 {artwork.description}
               </p>
             )}
+
+            <ArtworkActions
+              artworkId={artwork.documentId}
+              artworkTitle={artwork.title}
+              price={artwork.price}
+              sold={artwork.sold}
+            />
 
             {artwork.tags && artwork.tags.length > 0 && (
               <div className="mb-6">

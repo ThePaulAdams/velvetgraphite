@@ -45,6 +45,13 @@
     "views": {
       "type": "integer",
       "default": 0
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "sold": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

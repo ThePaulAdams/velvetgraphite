@@ -1,6 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
+import CustomWorkRequestForm from '@/components/CustomWorkRequestForm';
 
 export default function Home() {
+  const [isCustomWorkFormOpen, setIsCustomWorkFormOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-black">
       <main className="mx-auto max-w-4xl px-4 py-20 text-center">
@@ -36,7 +42,18 @@ export default function Home() {
               </svg>
             </span>
           </Link>
+          <button
+            onClick={() => setIsCustomWorkFormOpen(true)}
+            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-pink-600 px-8 py-4 text-lg font-medium text-pink-400 transition-all hover:bg-pink-600/10"
+          >
+            Request Custom Work
+          </button>
         </div>
+
+        <CustomWorkRequestForm
+          isOpen={isCustomWorkFormOpen}
+          onClose={() => setIsCustomWorkFormOpen(false)}
+        />
 
         <div className="mt-20 grid gap-8 text-left md:grid-cols-3">
           <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">

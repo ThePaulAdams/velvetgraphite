@@ -24,9 +24,21 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
             className="object-cover transition-opacity group-hover:opacity-90"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+          {artwork.sold && (
+            <div className="absolute right-0 top-0 m-4 rotate-12 bg-red-600 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-lg">
+              Sold
+            </div>
+          )}
         </div>
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-          <h3 className="text-lg font-semibold text-white">{artwork.title}</h3>
+          <div className="flex items-start justify-between">
+            <h3 className="text-lg font-semibold text-white">{artwork.title}</h3>
+            {artwork.price && (
+              <span className="ml-2 whitespace-nowrap text-lg font-bold text-pink-400">
+                ${artwork.price}
+              </span>
+            )}
+          </div>
           {artwork.tags && artwork.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {artwork.tags.slice(0, 3).map((tag, index) => (
