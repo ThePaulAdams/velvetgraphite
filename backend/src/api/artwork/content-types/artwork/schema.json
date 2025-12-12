@@ -47,11 +47,21 @@
       "default": 0
     },
     "price": {
-      "type": "float"
+      "type": "float",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": true
+        }
+      }
     },
     "sold": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "pluginOptions": {
+        "content-manager": {
+          "visible": true
+        }
+      }
     }
   }
 }
