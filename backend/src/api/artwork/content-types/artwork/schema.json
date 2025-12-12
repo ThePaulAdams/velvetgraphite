@@ -47,7 +47,7 @@
       "default": 0
     },
     "price": {
-      "type": "decimal"
+      "type": "float"
     },
     "sold": {
       "type": "boolean",
