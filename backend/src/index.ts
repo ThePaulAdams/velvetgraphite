@@ -26,45 +26,41 @@ export default {
 
       if (store && store.value) {
         const config = typeof store.value === 'string' ? JSON.parse(store.value) : store.value;
-        let updated = false;
 
-        // Ensure metadatas exist for salePrice and isSold
+        // Log current state for debugging
+        strapi.log.info('Current salePrice metadata:', JSON.stringify(config.metadatas?.salePrice));
+        strapi.log.info('Current isSold metadata:', JSON.stringify(config.metadatas?.isSold));
+
+        // ALWAYS force editable: true for these fields
         if (config.metadatas) {
-          if (!config.metadatas.salePrice || !config.metadatas.salePrice.edit) {
-            config.metadatas.salePrice = {
-              edit: { label: 'SalePrice', description: '', placeholder: '', visible: true, editable: true },
-              list: { label: 'SalePrice', searchable: true, sortable: true }
-            };
-            updated = true;
+          // Force salePrice to be editable
+          if (!config.metadatas.salePrice) {
+            config.metadatas.salePrice = { edit: {}, list: {} };
           }
-          if (!config.metadatas.isSold || !config.metadatas.isSold.edit) {
-            config.metadatas.isSold = {
-              edit: { label: 'IsSold', description: '', placeholder: '', visible: true, editable: true },
-              list: { label: 'IsSold', searchable: true, sortable: true }
-            };
-            updated = true;
+          if (!config.metadatas.salePrice.edit) {
+            config.metadatas.salePrice.edit = {};
           }
+          config.metadatas.salePrice.edit.visible = true;
+          config.metadatas.salePrice.edit.editable = true;
 
-          // Also ensure they're in the edit layout
-          if (config.layouts && config.layouts.edit) {
-            const flatFields = config.layouts.edit.flat().map(f => f.name);
-            if (!flatFields.includes('salePrice') || !flatFields.includes('isSold')) {
-              // Add them to the last row of the edit layout
-              config.layouts.edit.push([
-                { name: 'salePrice', size: 6 },
-                { name: 'isSold', size: 6 }
-              ]);
-              updated = true;
-            }
+          // Force isSold to be editable
+          if (!config.metadatas.isSold) {
+            config.metadatas.isSold = { edit: {}, list: {} };
           }
-        }
+          if (!config.metadatas.isSold.edit) {
+            config.metadatas.isSold.edit = {};
+          }
+          config.metadatas.isSold.edit.visible = true;
+          config.metadatas.isSold.edit.editable = true;
 
-        if (updated) {
           await strapi.db.query('strapi::core-store').update({
             where: { key: storeKey },
             data: { value: JSON.stringify(config) },
           });
-          strapi.log.info('Updated Content Manager configuration for salePrice and isSold fields');
+
+          strapi.log.info('Forced salePrice and isSold to editable: true');
+          strapi.log.info('New salePrice metadata:', JSON.stringify(config.metadatas.salePrice));
+          strapi.log.info('New isSold metadata:', JSON.stringify(config.metadatas.isSold));
         }
       }
     } catch (error) {
