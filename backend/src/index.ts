@@ -16,29 +16,82 @@ export default {
    */
   async bootstrap({ strapi }) {
     try {
-      // Try to use Content Manager's built-in sync functionality
-      const contentManagerService = strapi.plugin('content-manager').service('content-types');
+      const configService = strapi.plugin('content-manager').service('content-types');
+      const uid = 'api::artwork.artwork';
 
-      if (contentManagerService && contentManagerService.syncConfigurations) {
-        strapi.log.info('Syncing Content Manager configurations...');
-        await contentManagerService.syncConfigurations();
+      // First sync configurations
+      if (configService.syncConfigurations) {
+        await configService.syncConfigurations();
         strapi.log.info('Content Manager sync complete');
       }
 
-      // Also try to sync via the configuration service
-      const configService = strapi.plugin('content-manager').service('configuration');
-      if (configService && configService.syncConfiguration) {
-        strapi.log.info('Syncing individual configuration...');
-        await configService.syncConfiguration('api::artwork.artwork');
-        strapi.log.info('Individual sync complete');
+      // Get current configuration
+      const config = await configService.findConfiguration({ uid });
+
+      if (config && config.metadatas) {
+        strapi.log.info('=== CHECKING FIELD METADATA ===');
+
+        // Get the working field's metadata structure (featured works)
+        const featuredMeta = config.metadatas.featured;
+        strapi.log.info('Featured (working): ' + JSON.stringify(featuredMeta));
+        strapi.log.info('isSold (broken): ' + JSON.stringify(config.metadatas.isSold));
+        strapi.log.info('salePrice (broken): ' + JSON.stringify(config.metadatas.salePrice));
+
+        // Check if we need to fix the metadata
+        const isSoldMeta = config.metadatas.isSold;
+        const salePriceMeta = config.metadatas.salePrice;
+
+        let needsUpdate = false;
+
+        // Create proper metadata structure for boolean fields (copy from featured)
+        if (featuredMeta && featuredMeta.edit) {
+          // Fix isSold if its edit metadata is missing or incomplete
+          if (!isSoldMeta || !isSoldMeta.edit || JSON.stringify(isSoldMeta.edit) !== JSON.stringify(featuredMeta.edit)) {
+            config.metadatas.isSold = {
+              edit: { ...featuredMeta.edit },
+              list: featuredMeta.list ? { ...featuredMeta.list } : { label: 'IsSold', searchable: true, sortable: true }
+            };
+            needsUpdate = true;
+            strapi.log.info('Fixed isSold metadata');
+          }
+        }
+
+        // For salePrice, use views metadata as template (both are numbers)
+        const viewsMeta = config.metadatas.views;
+        if (viewsMeta && viewsMeta.edit) {
+          if (!salePriceMeta || !salePriceMeta.edit || JSON.stringify(salePriceMeta.edit) !== JSON.stringify(viewsMeta.edit)) {
+            config.metadatas.salePrice = {
+              edit: { ...viewsMeta.edit },
+              list: viewsMeta.list ? { ...viewsMeta.list } : { label: 'SalePrice', searchable: true, sortable: true }
+            };
+            needsUpdate = true;
+            strapi.log.info('Fixed salePrice metadata');
+          }
+        }
+
+        // Update configuration if needed
+        if (needsUpdate) {
+          await configService.updateConfiguration(
+            { uid },
+            {
+              settings: config.settings,
+              metadatas: config.metadatas,
+              layouts: config.layouts
+            }
+          );
+          strapi.log.info('Configuration updated successfully');
+
+          // Verify the update
+          const updatedConfig = await configService.findConfiguration({ uid });
+          strapi.log.info('Updated isSold: ' + JSON.stringify(updatedConfig.metadatas?.isSold));
+          strapi.log.info('Updated salePrice: ' + JSON.stringify(updatedConfig.metadatas?.salePrice));
+        } else {
+          strapi.log.info('No metadata updates needed');
+        }
       }
 
-      // Log available Content Manager services for debugging
-      const cmServices = strapi.plugin('content-manager').services;
-      strapi.log.info('Available Content Manager services: ' + Object.keys(cmServices).join(', '));
-
     } catch (error) {
-      strapi.log.error('Bootstrap sync error:', error.message);
+      strapi.log.error('Bootstrap error:', error.message, error.stack);
     }
   },
 };
