@@ -27,44 +27,58 @@ export default {
       if (store && store.value) {
         const config = typeof store.value === 'string' ? JSON.parse(store.value) : store.value;
 
-        // Log current state for debugging
-        strapi.log.info('Current salePrice metadata:', JSON.stringify(config.metadatas?.salePrice));
-        strapi.log.info('Current isSold metadata:', JSON.stringify(config.metadatas?.isSold));
+        strapi.log.info('Found config, metadatas keys: ' + Object.keys(config.metadatas || {}).join(', '));
 
-        // ALWAYS force editable: true for these fields
-        if (config.metadatas) {
-          // Force salePrice to be editable
-          if (!config.metadatas.salePrice) {
-            config.metadatas.salePrice = { edit: {}, list: {} };
-          }
-          if (!config.metadatas.salePrice.edit) {
-            config.metadatas.salePrice.edit = {};
-          }
-          config.metadatas.salePrice.edit.visible = true;
-          config.metadatas.salePrice.edit.editable = true;
-
-          // Force isSold to be editable
-          if (!config.metadatas.isSold) {
-            config.metadatas.isSold = { edit: {}, list: {} };
-          }
-          if (!config.metadatas.isSold.edit) {
-            config.metadatas.isSold.edit = {};
-          }
-          config.metadatas.isSold.edit.visible = true;
-          config.metadatas.isSold.edit.editable = true;
-
-          await strapi.db.query('strapi::core-store').update({
-            where: { key: storeKey },
-            data: { value: JSON.stringify(config) },
-          });
-
-          strapi.log.info('Forced salePrice and isSold to editable: true');
-          strapi.log.info('New salePrice metadata:', JSON.stringify(config.metadatas.salePrice));
-          strapi.log.info('New isSold metadata:', JSON.stringify(config.metadatas.isSold));
+        if (!config.metadatas) {
+          config.metadatas = {};
         }
+
+        // Create complete metadata for salePrice (matching format of working fields like 'featured')
+        config.metadatas.salePrice = {
+          edit: {
+            label: 'Sale Price',
+            description: '',
+            placeholder: '',
+            visible: true,
+            editable: true
+          },
+          list: {
+            label: 'Sale Price',
+            searchable: true,
+            sortable: true
+          }
+        };
+
+        // Create complete metadata for isSold (matching format of working fields like 'featured')
+        config.metadatas.isSold = {
+          edit: {
+            label: 'Is Sold',
+            description: '',
+            placeholder: '',
+            visible: true,
+            editable: true
+          },
+          list: {
+            label: 'Is Sold',
+            searchable: true,
+            sortable: true
+          }
+        };
+
+        // Save the updated config
+        await strapi.db.query('strapi::core-store').update({
+          where: { key: storeKey },
+          data: { value: JSON.stringify(config) },
+        });
+
+        strapi.log.info('Created metadata for salePrice: ' + JSON.stringify(config.metadatas.salePrice));
+        strapi.log.info('Created metadata for isSold: ' + JSON.stringify(config.metadatas.isSold));
+        strapi.log.info('Update complete');
+      } else {
+        strapi.log.warn('No Content Manager config found for artwork');
       }
     } catch (error) {
-      strapi.log.warn('Could not update Content Manager configuration:', error.message);
+      strapi.log.error('Bootstrap error:', error.message);
     }
   },
 };
