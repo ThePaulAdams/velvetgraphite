@@ -55,35 +55,7 @@ export default function Home() {
           onClose={() => setIsCustomWorkFormOpen(false)}
         />
 
-        <div className="mt-20 grid gap-8 text-left md:grid-cols-3">
-          <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
-            <div className="mb-3 text-3xl">🎨</div>
-            <h3 className="mb-2 text-lg font-semibold text-white">
-              Curated Art
-            </h3>
-            <p className="text-gray-400">
-              Hand-drawn artwork by VelvetGraphite
-            </p>
-          </div>
-          <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
-            <div className="mb-3 text-3xl">🏷️</div>
-            <h3 className="mb-2 text-lg font-semibold text-white">
-              Tag Filtering
-            </h3>
-            <p className="text-gray-400">
-              Easily find artwork by tags and categories
-            </p>
-          </div>
-          <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
-            <div className="mb-3 text-3xl">✨</div>
-            <h3 className="mb-2 text-lg font-semibold text-white">
-              High Quality
-            </h3>
-            <p className="text-gray-400">
-              Optimized image delivery via Cloudinary CDN
-            </p>
-          </div>
-        </div>
+
       </main>
     </div>
   );
