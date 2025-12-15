@@ -58,7 +58,7 @@ class Particle {
 
 const GenerativeSketch = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageUrl = 'https://cdn.imgchest.com/files/3dc31f9dc463.png';
+  const imageUrl = `/api/image-proxy?url=${encodeURIComponent('https://cdn.imgchest.com/files/3dc31f9dc463.png')}`;
   let particles: Particle[] = [];
   let mouseX = -1000;
   let mouseY = -1000;
@@ -72,7 +72,6 @@ const GenerativeSketch = () => {
 
     let animationFrameId: number;
     const image = new Image();
-    image.crossOrigin = 'Anonymous';
     image.src = imageUrl;
 
     const init = () => {
