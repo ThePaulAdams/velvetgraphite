@@ -3,7 +3,7 @@
 import { useRef, useEffect } from 'react';
 
 const config = {
-    agentCount: 4000,
+    agentCount: 8000,
     agentSize: 0.5,
     agentAlpha: 0.5,
     edgePhaseLength: 800,
@@ -161,20 +161,12 @@ const GenerativeSketch = () => {
             tempCtx.canvas.height = rows;
 
             const imageAspectRatio = image.width / image.height;
-            const canvasAspectRatio = cols / rows;
-            let drawWidth, drawHeight, offsetX, offsetY;
 
-            if (imageAspectRatio > canvasAspectRatio) {
-                drawWidth = cols;
-                drawHeight = cols / imageAspectRatio;
-                offsetX = 0;
-                offsetY = (rows - drawHeight) / 2;
-            } else {
-                drawHeight = rows;
-                drawWidth = rows * imageAspectRatio;
-                offsetY = 0;
-                offsetX = (cols - drawWidth) / 2;
-            }
+            const drawWidth = cols;
+            const drawHeight = cols / imageAspectRatio;
+            const offsetX = 0;
+            const offsetY = (rows - drawHeight) / 2;
+
             tempCtx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
             const imageData = tempCtx.getImageData(0, 0, cols, rows);
             const { flowField, edgePoints } = calculateFlowField(imageData);
