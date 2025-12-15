@@ -17,7 +17,7 @@ export default function Home() {
           Art Gallery
         </p>
         <p className="mb-12 text-lg text-gray-400">
-          A curated collection of artwork inspired by Reddit's creative community
+          A curated collection of artwork by VelvetGraphite
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
@@ -62,7 +62,7 @@ export default function Home() {
               Curated Art
             </h3>
             <p className="text-gray-400">
-              Hand-drawn artwork inspired by Reddit's creative community
+              Hand-drawn artwork by VelvetGraphite
             </p>
           </div>
           <div className="rounded-lg bg-gray-800/50 p-6 backdrop-blur-sm">
