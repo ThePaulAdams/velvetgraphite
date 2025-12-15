@@ -98,7 +98,7 @@ class Agent {
 const GenerativeSketch = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imageUrl = `/api/image-proxy?url=${encodeURIComponent('https://cdn.imgchest.com/files/3dc31f9dc463.png')}`;
-    const animationFrameId = useRef<number>();
+    const animationFrameId = useRef<number | null>(null);
     const frameCount = useRef<number>(0);
 
 
