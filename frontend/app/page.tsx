@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import GenerativeSketch from '@/components/GenerativeSketch';
 import CustomWorkRequestForm from '@/components/CustomWorkRequestForm';
 
 export default function Home() {
   const [isCustomWorkFormOpen, setIsCustomWorkFormOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+    <div className="flex min-h-screen items-center justify-center">
+      <GenerativeSketch />
       <main className="mx-auto max-w-4xl px-4 py-20 text-center">
         <h1 className="mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-6xl font-bold text-transparent md:text-8xl">
           VelvetGraphite
