@@ -3,20 +3,21 @@
 import { useRef, useEffect } from 'react';
 
 const config = {
-    agentCount: 2500,
-    agentSize: 1,
+    agentCount: 4000,
+    agentSize: 0.5,
     agentAlpha: 0.5,
-    edgePhaseLength: 800, // frames
+    edgePhaseLength: 800,
     stepLength: 0.5,
 };
 
 class Agent {
     x: number;
     y: number;
+    px: number;
+    py: number;
     ctx: CanvasRenderingContext2D;
     cols: number;
     rows: number;
-    scale: number;
     flowField: number[];
     edgePoints: number[];
     imageData: ImageData;
@@ -27,7 +28,6 @@ class Agent {
         ctx: CanvasRenderingContext2D,
         cols: number,
         rows: number,
-        scale: number,
         flowField: number[],
         edgePoints: number[],
         imageData: ImageData,
@@ -36,13 +36,14 @@ class Agent {
         this.ctx = ctx;
         this.cols = cols;
         this.rows = rows;
-        this.scale = scale;
         this.flowField = flowField;
         this.edgePoints = edgePoints;
         this.imageData = imageData;
         this.frameCount = frameCount;
         this.x = 0;
         this.y = 0;
+        this.px = 0;
+        this.py = 0;
         this.color = 'white';
         this.reset();
     }
@@ -53,18 +54,19 @@ class Agent {
 
         if (this.edgePoints.length > 0 && Math.random() < edgeBias) {
             const randEdgeIndex = this.edgePoints[Math.floor(Math.random() * this.edgePoints.length)];
-            x = (randEdgeIndex % this.cols) * this.scale + Math.random() * this.scale;
-            y = Math.floor(randEdgeIndex / this.cols) * this.scale + Math.random() * this.scale;
+            x = randEdgeIndex % this.cols;
+            y = Math.floor(randEdgeIndex / this.cols);
         } else {
-            x = Math.random() * this.cols * this.scale;
-            y = Math.random() * this.rows * this.scale;
+            x = Math.random() * this.cols;
+            y = Math.random() * this.rows;
         }
         this.x = x;
         this.y = y;
+        this.px = x;
+        this.py = y;
 
-        // Sample color
-        const ix = Math.floor(x / this.scale);
-        const iy = Math.floor(y / this.scale);
+        const ix = Math.floor(x);
+        const iy = Math.floor(y);
         const index = (ix + iy * this.cols) * 4;
         const r = this.imageData.data[index];
         const g = this.imageData.data[index + 1];
@@ -73,8 +75,11 @@ class Agent {
     }
     
     update() {
-        const x_grid = Math.floor(this.x / this.scale);
-        const y_grid = Math.floor(this.y / this.scale);
+        this.px = this.x;
+        this.py = this.y;
+
+        const x_grid = Math.floor(this.x);
+        const y_grid = Math.floor(this.y);
         const index = x_grid + y_grid * this.cols;
         const angle = this.flowField[index];
 
@@ -85,7 +90,7 @@ class Agent {
             this.reset();
         }
 
-        if (this.x < 0 || this.x > this.cols * this.scale || this.y < 0 || this.y > this.rows * this.scale) {
+        if (this.x < 0 || this.x > this.cols || this.y < 0 || this.y > this.rows) {
             this.reset();
         }
 
@@ -93,8 +98,11 @@ class Agent {
     }
 
     draw() {
-        this.ctx.fillStyle = this.color;
-        this.ctx.fillRect(this.x, this.y, config.agentSize, config.agentSize);
+        this.ctx.strokeStyle = this.color;
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.px, this.py);
+        this.ctx.lineTo(this.x, this.y);
+        this.ctx.stroke();
     }
 }
 
@@ -103,7 +111,6 @@ const GenerativeSketch = () => {
     const imageUrl = `/api/image-proxy?url=${encodeURIComponent('https://cdn.imgchest.com/files/3dc31f9dc463.png')}`;
     const animationFrameId = useRef<number | null>(null);
     const frameCount = useRef<number>(0);
-
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -142,11 +149,11 @@ const GenerativeSketch = () => {
         };
 
         image.onload = () => {
-            const scale = 2; // Further optimize by using a larger scale
-            const cols = Math.floor(window.innerWidth / scale);
-            const rows = Math.floor(window.innerHeight / scale);
-            canvas.width = cols * scale;
-            canvas.height = rows * scale;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const cols = canvas.width;
+            const rows = canvas.height;
         
             const tempCtx = document.createElement('canvas').getContext('2d');
             if (!tempCtx) return;
@@ -174,9 +181,10 @@ const GenerativeSketch = () => {
 
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = config.agentSize;
             ctx.globalAlpha = config.agentAlpha;
             
-            const agents = Array.from({ length: config.agentCount }, () => new Agent(ctx, cols, rows, scale, flowField, edgePoints, imageData, frameCount.current));
+            const agents = Array.from({ length: config.agentCount }, () => new Agent(ctx, cols, rows, flowField, edgePoints, imageData, frameCount.current));
 
             const animate = () => {
                 if (frameCount.current < config.edgePhaseLength + 2000) { 
