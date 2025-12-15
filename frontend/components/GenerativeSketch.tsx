@@ -165,6 +165,7 @@ const GenerativeSketch = () => {
         if (!ctx) return;
     
         const image = new Image();
+        image.crossOrigin = "Anonymous";
         image.src = imageUrl;
 
         const calculateFlowField = (imageData: ImageData, width: number, height: number) => {
