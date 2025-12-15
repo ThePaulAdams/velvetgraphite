@@ -3,11 +3,12 @@
 import { useRef, useEffect } from 'react';
 
 const config = {
-    agentCount: 8000,
+    agentCount: 10000,
     agentSize: 0.5,
     agentAlpha: 0.5,
     edgePhaseLength: 800,
     stepLength: 0.5,
+    updatesPerFrame: 10,
 };
 
 class Agent {
@@ -180,11 +181,13 @@ const GenerativeSketch = () => {
 
             const animate = () => {
                 if (frameCount.current < config.edgePhaseLength + 2000) { 
-                    agents.forEach(agent => {
-                        agent.update();
-                        agent.draw();
-                        agent.frameCount = frameCount.current;
-                    });
+                    for (let i = 0; i < config.updatesPerFrame; i++) {
+                        agents.forEach(agent => {
+                            agent.update();
+                            agent.draw();
+                            agent.frameCount = frameCount.current;
+                        });
+                    }
                     frameCount.current++;
                     animationFrameId.current = requestAnimationFrame(animate);
                 }
