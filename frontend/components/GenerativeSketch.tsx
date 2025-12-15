@@ -3,27 +3,25 @@
 import { useRef, useEffect } from 'react';
 
 const config = {
-    agentCount: 5000,
-    agentSize: 0.5,
-    agentAlpha: 0.8,
-    agentColor: 'white',
+    agentCount: 2500,
+    agentSize: 1,
+    agentAlpha: 0.5,
     edgePhaseLength: 800, // frames
     stepLength: 0.5,
-    noiseScale: 0.005,
 };
 
 class Agent {
     x: number;
     y: number;
-    px: number;
-    py: number;
     ctx: CanvasRenderingContext2D;
     cols: number;
     rows: number;
     scale: number;
     flowField: number[];
     edgePoints: number[];
+    imageData: ImageData;
     frameCount: number;
+    color: string;
 
     constructor(
         ctx: CanvasRenderingContext2D,
@@ -32,6 +30,7 @@ class Agent {
         scale: number,
         flowField: number[],
         edgePoints: number[],
+        imageData: ImageData,
         frameCount: number
     ) {
         this.ctx = ctx;
@@ -40,29 +39,37 @@ class Agent {
         this.scale = scale;
         this.flowField = flowField;
         this.edgePoints = edgePoints;
+        this.imageData = imageData;
         this.frameCount = frameCount;
         this.x = 0;
         this.y = 0;
-        this.px = 0;
-        this.py = 0;
+        this.color = 'white';
         this.reset();
     }
 
     reset() {
         const edgeBias = Math.max(0, 1 - this.frameCount / config.edgePhaseLength);
+        let x, y;
 
         if (this.edgePoints.length > 0 && Math.random() < edgeBias) {
             const randEdgeIndex = this.edgePoints[Math.floor(Math.random() * this.edgePoints.length)];
-            const ex = (randEdgeIndex % this.cols) * this.scale;
-            const ey = Math.floor(randEdgeIndex / this.cols) * this.scale;
-            this.x = ex + Math.random() * this.scale;
-            this.y = ey + Math.random() * this.scale;
+            x = (randEdgeIndex % this.cols) * this.scale + Math.random() * this.scale;
+            y = Math.floor(randEdgeIndex / this.cols) * this.scale + Math.random() * this.scale;
         } else {
-            this.x = Math.random() * this.cols * this.scale;
-            this.y = Math.random() * this.rows * this.scale;
+            x = Math.random() * this.cols * this.scale;
+            y = Math.random() * this.rows * this.scale;
         }
-        this.px = this.x;
-        this.py = this.y;
+        this.x = x;
+        this.y = y;
+
+        // Sample color
+        const ix = Math.floor(x / this.scale);
+        const iy = Math.floor(y / this.scale);
+        const index = (ix + iy * this.cols) * 4;
+        const r = this.imageData.data[index];
+        const g = this.imageData.data[index + 1];
+        const b = this.imageData.data[index + 2];
+        this.color = `rgb(${r},${g},${b})`;
     }
     
     update() {
@@ -72,8 +79,6 @@ class Agent {
         const angle = this.flowField[index];
 
         if (angle !== undefined) {
-            this.px = this.x;
-            this.py = this.y;
             this.x += Math.cos(angle) * config.stepLength;
             this.y += Math.sin(angle) * config.stepLength;
         } else {
@@ -88,10 +93,8 @@ class Agent {
     }
 
     draw() {
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.px, this.py);
-        this.ctx.lineTo(this.x, this.y);
-        this.ctx.stroke();
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(this.x, this.y, config.agentSize, config.agentSize);
     }
 }
 
@@ -139,7 +142,7 @@ const GenerativeSketch = () => {
         };
 
         image.onload = () => {
-            const scale = 1;
+            const scale = 2; // Further optimize by using a larger scale
             const cols = Math.floor(window.innerWidth / scale);
             const rows = Math.floor(window.innerHeight / scale);
             canvas.width = cols * scale;
@@ -171,14 +174,12 @@ const GenerativeSketch = () => {
 
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = `${config.agentColor}`;
-            ctx.lineWidth = config.agentSize;
             ctx.globalAlpha = config.agentAlpha;
             
-            const agents = Array.from({ length: config.agentCount }, () => new Agent(ctx, cols, rows, scale, flowField, edgePoints, frameCount.current));
+            const agents = Array.from({ length: config.agentCount }, () => new Agent(ctx, cols, rows, scale, flowField, edgePoints, imageData, frameCount.current));
 
             const animate = () => {
-                if (frameCount.current < config.edgePhaseLength + 2000) { // Add some extra frames for fill
+                if (frameCount.current < config.edgePhaseLength + 2000) { 
                     agents.forEach(agent => {
                         agent.update();
                         agent.draw();
