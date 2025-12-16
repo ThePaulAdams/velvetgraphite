@@ -2,12 +2,12 @@
 
 import { useRef, useEffect } from 'react';
 
-// Merged config to balance user's latest request with performance
 const config = {
-    agentCount: 4000, 
-    agentSize: 1.5,
-    agentAlpha: 0.20,
-    edgePhaseLength: 600,
+    agentCount: 4000,
+    agentSize: 1.2,
+    agentAlpha: 0.15,
+    edgePhaseLength: 400,
+    maxFrames: 1200,   
     updatesPerFrame: 5,
 };
 
@@ -53,14 +53,19 @@ class Agent {
         this.py = 0;
         this.life = 0;
         this.age = 0;
-        this.isDead = true; // Start as dead to be reset immediately
+        this.isDead = true; // Start as dead to be immediately reset
         this.color = 'black';
     }
 
     reset(frameCount: number, imageData: ImageData) {
-        const edgeBias = Math.max(0, 1 - frameCount / config.edgePhaseLength);
-        let spawnX, spawnY;
+        if (frameCount > config.maxFrames) {
+            this.isDead = true;
+            return;
+        }
 
+        const edgeBias = Math.max(0, 1 - frameCount / config.edgePhaseLength);
+
+        let spawnX, spawnY;
         if (this.edgePoints.length > 0 && Math.random() < edgeBias) {
             const randEdgeIndex = this.edgePoints[Math.floor(Math.random() * this.edgePoints.length)];
             spawnX = (randEdgeIndex % this.cols);
@@ -69,7 +74,7 @@ class Agent {
             spawnX = Math.random() * this.width;
             spawnY = Math.random() * this.height;
         }
-        
+
         this.x = spawnX;
         this.y = spawnY;
         this.px = spawnX;
@@ -79,8 +84,7 @@ class Agent {
         this.life = 50 + Math.random() * 100;
         this.age = 0;
         this.isDead = false;
-        
-        // Color sampling moved back to reset to avoid performance hit of every-frame sampling
+
         const ix = Math.floor(spawnX);
         const iy = Math.floor(spawnY);
         const pIndex = (ix + iy * this.width) * 4;
@@ -94,6 +98,7 @@ class Agent {
     
     update(frameCount: number, imageData: ImageData) {
         if (this.isDead) {
+            // FIX: Pass imageData to reset
             this.reset(frameCount, imageData);
             return;
         }
@@ -105,21 +110,20 @@ class Agent {
         const y_grid = Math.floor(this.y);
         const index = x_grid + y_grid * this.cols;
         
-        // This was the user's key change, but it's extremely slow. 
-        // Moved color sampling back to reset() for performance.
-        // If you want streaky colors, uncomment this block and remove color from reset()
-        /*
         if (x_grid >= 0 && x_grid < this.width && y_grid >= 0 && y_grid < this.height) {
             const pIndex = (x_grid + y_grid * this.width) * 4;
             const r = imageData.data[pIndex];
             const g = imageData.data[pIndex + 1];
             const b = imageData.data[pIndex + 2];
             this.color = `rgb(${r},${g},${b})`;
+
+            const brightness = (r + g + b) / 3;
+            if (brightness > 230) {
+                this.life -= 10; 
+            }
         }
-        */
 
         const angle = this.flowField[index];
-
         if (angle !== undefined) {
             this.vx += Math.cos(angle) * 0.5;
             this.vy += Math.sin(angle) * 0.5;
@@ -185,21 +189,17 @@ const GenerativeSketch = () => {
                     const index = (x + y * width);
                     const baseIdx = index * 4;
                     const brightness = (data[baseIdx] + data[baseIdx + 1] + data[baseIdx + 2]) / 3;
-
                     const rightIdx = Math.min(x + 1, width - 1) + y * width;
                     const bRight = (data[rightIdx * 4] + data[rightIdx * 4 + 1] + data[rightIdx * 4 + 2]) / 3;
                     const gx = bRight - brightness;
-
                     const downIdx = x + Math.min(y + 1, height - 1) * width;
                     const bDown = (data[downIdx * 4] + data[downIdx * 4 + 1] + data[downIdx * 4 + 2]) / 3;
                     const gy = bDown - brightness;
-                    
                     const magnitude = Math.sqrt(gx * gx + gy * gy);
                     
                     if (magnitude > 15) { 
                         edgePoints.push(index);
                     }
-                    
                     flowField[index] = Math.atan2(gy, gx) + Math.PI / 2;
                 }
             }
@@ -207,12 +207,17 @@ const GenerativeSketch = () => {
         };
 
         const initAnimation = () => {
+            if (animationFrameId.current) {
+                cancelAnimationFrame(animationFrameId.current);
+            }
+            frameCount.current = 0;
+
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             
-            const cols = canvas.width;
-            const rows = canvas.height;
-
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             if (!tempCtx) return;
@@ -229,26 +234,25 @@ const GenerativeSketch = () => {
                 drawWidth = canvas.height * imageRatio;
             }
             
-            tempCanvas.width = cols;
-            tempCanvas.height = rows;
-            tempCtx.drawImage(image, (cols - drawWidth)/2, (rows - drawHeight)/2, drawWidth, drawHeight);
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            tempCtx.drawImage(image, (canvas.width - drawWidth)/2, (canvas.height - drawHeight)/2, drawWidth, drawHeight);
             
-            const imageData = tempCtx.getImageData(0, 0, cols, rows);
+            const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
             const { flowField, edgePoints } = calculateFlowField(imageData);
 
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
             ctx.lineWidth = config.agentSize;
             ctx.globalAlpha = config.agentAlpha;
             
             const agents = Array.from({ length: config.agentCount }, () => 
-                new Agent(ctx, cols, rows, flowField, edgePoints)
+                new Agent(ctx, canvas.width, canvas.height, flowField, edgePoints)
             );
             
             const animate = () => {
-                ctx.fillStyle = 'rgba(0,0,0,0.05)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (frameCount.current >= config.maxFrames) {
+                    // Optional: fade out logic could go here
+                    return;
+                }
 
                 for (let i = 0; i < config.updatesPerFrame; i++) {
                     agents.forEach(agent => {
