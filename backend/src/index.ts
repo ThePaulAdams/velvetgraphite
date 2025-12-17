@@ -68,6 +68,35 @@ export default {
             strapi.log.info('Fixed salePrice metadata');
           }
         }
+        
+        // --- NEW LOGIC TO FIX THE LAYOUT ---
+        const editLayout = config.layouts.edit;
+        const isSalePriceInLayout = editLayout.flat().some(field => field.name === 'salePrice');
+        const isIsSoldInLayout = editLayout.flat().some(field => field.name === 'isSold');
+
+        if (!isSalePriceInLayout || !isIsSoldInLayout) {
+            strapi.log.info('=== FIXING LAYOUTS ===');
+            const newRow = [];
+            if (!isSalePriceInLayout) {
+                newRow.push({ name: 'salePrice', size: 6 });
+                strapi.log.info('Adding salePrice to layout.');
+            }
+            if (!isIsSoldInLayout) {
+                newRow.push({ name: 'isSold', size: 6 });
+                strapi.log.info('Adding isSold to layout.');
+            }
+            
+            // Add the new row after the 'title' row
+            const titleRowIndex = editLayout.findIndex(row => row.some(field => field.name === 'title'));
+            if (titleRowIndex !== -1) {
+                editLayout.splice(titleRowIndex + 1, 0, newRow);
+            } else {
+                editLayout.unshift(newRow); // Failsafe
+            }
+            
+            needsUpdate = true; // Mark configuration for update
+        }
+        // --- END OF NEW LOGIC ---
 
         // Update configuration if needed
         if (needsUpdate) {
@@ -86,7 +115,7 @@ export default {
           strapi.log.info('Updated isSold: ' + JSON.stringify(updatedConfig.metadatas?.isSold));
           strapi.log.info('Updated salePrice: ' + JSON.stringify(updatedConfig.metadatas?.salePrice));
         } else {
-          strapi.log.info('No metadata updates needed');
+          strapi.log.info('No metadata or layout updates needed');
         }
       }
 
