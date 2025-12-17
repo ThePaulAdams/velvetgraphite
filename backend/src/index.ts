@@ -15,112 +15,85 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }) {
+    const uid = 'api::artwork.artwork';
+    strapi.log.info(`[Bootstrap] Starting configuration check for ${uid}...`);
+
     try {
       const configService = strapi.plugin('content-manager').service('content-types');
-      const uid = 'api::artwork.artwork';
+      let config = await configService.findConfiguration({ uid });
 
-      // First sync configurations
-      if (configService.syncConfigurations) {
-        await configService.syncConfigurations();
-        strapi.log.info('Content Manager sync complete');
+      if (!config) {
+        strapi.log.error(`[Bootstrap] Could not find configuration for ${uid}.`);
+        return;
       }
 
-      // Get current configuration
-      const config = await configService.findConfiguration({ uid });
+      let needsUpdate = false;
 
-      if (config && config.metadatas) {
-        strapi.log.info('=== CHECKING FIELD METADATA ===');
-
-        // Get the working field's metadata structure (featured works)
-        const featuredMeta = config.metadatas.featured;
-        strapi.log.info('Featured (working): ' + JSON.stringify(featuredMeta));
-        strapi.log.info('isSold (broken): ' + JSON.stringify(config.metadatas.isSold));
-        strapi.log.info('salePrice (broken): ' + JSON.stringify(config.metadatas.salePrice));
-
-        // Check if we need to fix the metadata
-        const isSoldMeta = config.metadatas.isSold;
-        const salePriceMeta = config.metadatas.salePrice;
-
-        let needsUpdate = false;
-
-        // Create proper metadata structure for boolean fields (copy from featured)
-        if (featuredMeta && featuredMeta.edit) {
-          // Fix isSold if its edit metadata is missing or incomplete
-          if (!isSoldMeta || !isSoldMeta.edit || JSON.stringify(isSoldMeta.edit) !== JSON.stringify(featuredMeta.edit)) {
-            config.metadatas.isSold = {
-              edit: { ...featuredMeta.edit },
-              list: featuredMeta.list ? { ...featuredMeta.list } : { label: 'IsSold', searchable: true, sortable: true }
-            };
-            needsUpdate = true;
-            strapi.log.info('Fixed isSold metadata');
-          }
+      // --- 1. Fix Metadata ---
+      // Ensures the fields are configured to be editable in the Content Manager.
+      const fieldsToFix = ['isSold', 'salePrice'];
+      fieldsToFix.forEach(field => {
+        if (!config.metadatas[field] || !config.metadatas[field].edit || !config.metadatas[field].edit.editable) {
+          strapi.log.info(`[Bootstrap] Metadata for "${field}" is missing or incomplete. Rebuilding it.`);
+          config.metadatas[field] = {
+            "edit": {
+              "label": field.charAt(0).toUpperCase() + field.slice(1), // e.g., "IsSold"
+              "description": "",
+              "placeholder": "",
+              "visible": true,
+              "editable": true
+            },
+            "list": {
+              "label": field.charAt(0).toUpperCase() + field.slice(1),
+              "searchable": true,
+              "sortable": true
+            }
+          };
+          needsUpdate = true;
         }
+      });
 
-        // For salePrice, use views metadata as template (both are numbers)
-        const viewsMeta = config.metadatas.views;
-        if (viewsMeta && viewsMeta.edit) {
-          if (!salePriceMeta || !salePriceMeta.edit || JSON.stringify(salePriceMeta.edit) !== JSON.stringify(viewsMeta.edit)) {
-            config.metadatas.salePrice = {
-              edit: { ...viewsMeta.edit },
-              list: viewsMeta.list ? { ...viewsMeta.list } : { label: 'SalePrice', searchable: true, sortable: true }
-            };
-            needsUpdate = true;
-            strapi.log.info('Fixed salePrice metadata');
-          }
-        }
+      // --- 2. Fix Layout ---
+      // Ensures the fields are placed in the Edit View layout.
+      const editLayout = config.layouts.edit;
+      const fieldsInLayout = editLayout.flat().map(f => f.name);
+      
+      const fieldsToAddToLayout = [];
+      if (!fieldsInLayout.includes('isSold')) {
+        fieldsToAddToLayout.push({ name: 'isSold', size: 6 });
+      }
+      if (!fieldsInLayout.includes('salePrice')) {
+        fieldsToAddToLayout.push({ name: 'salePrice', size: 6 });
+      }
+
+      if (fieldsToAddToLayout.length > 0) {
+        strapi.log.info(`[Bootstrap] Adding missing fields to edit layout: ${fieldsToAddToLayout.map(f => f.name).join(', ')}`);
         
-        // --- NEW LOGIC TO FIX THE LAYOUT ---
-        const editLayout = config.layouts.edit;
-        const isSalePriceInLayout = editLayout.flat().some(field => field.name === 'salePrice');
-        const isIsSoldInLayout = editLayout.flat().some(field => field.name === 'isSold');
-
-        if (!isSalePriceInLayout || !isIsSoldInLayout) {
-            strapi.log.info('=== FIXING LAYOUTS ===');
-            const newRow = [];
-            if (!isSalePriceInLayout) {
-                newRow.push({ name: 'salePrice', size: 6 });
-                strapi.log.info('Adding salePrice to layout.');
-            }
-            if (!isIsSoldInLayout) {
-                newRow.push({ name: 'isSold', size: 6 });
-                strapi.log.info('Adding isSold to layout.');
-            }
-            
-            // Add the new row after the 'title' row
-            const titleRowIndex = editLayout.findIndex(row => row.some(field => field.name === 'title'));
-            if (titleRowIndex !== -1) {
-                editLayout.splice(titleRowIndex + 1, 0, newRow);
-            } else {
-                editLayout.unshift(newRow); // Failsafe
-            }
-            
-            needsUpdate = true; // Mark configuration for update
-        }
-        // --- END OF NEW LOGIC ---
-
-        // Update configuration if needed
-        if (needsUpdate) {
-          await configService.updateConfiguration(
-            { uid },
-            {
-              settings: config.settings,
-              metadatas: config.metadatas,
-              layouts: config.layouts
-            }
-          );
-          strapi.log.info('Configuration updated successfully');
-
-          // Verify the update
-          const updatedConfig = await configService.findConfiguration({ uid });
-          strapi.log.info('Updated isSold: ' + JSON.stringify(updatedConfig.metadatas?.isSold));
-          strapi.log.info('Updated salePrice: ' + JSON.stringify(updatedConfig.metadatas?.salePrice));
+        // Find the 'title' field to insert the new row after it.
+        const titleRowIndex = editLayout.findIndex(row => row.some(field => field.name === 'title'));
+        if (titleRowIndex !== -1) {
+          // Insert new row after the title row.
+          editLayout.splice(titleRowIndex + 1, 0, fieldsToAddToLayout);
         } else {
-          strapi.log.info('No metadata or layout updates needed');
+          // Failsafe: add to the top if title isn't found.
+          editLayout.unshift(fieldsToAddToLayout);
         }
+        needsUpdate = true;
       }
+
+      // --- 3. Save if needed ---
+      if (needsUpdate) {
+        strapi.log.info(`[Bootstrap] Saving updated configuration for ${uid}.`);
+        await configService.updateConfiguration({ uid }, config);
+        strapi.log.info(`[Bootstrap] Successfully saved configuration for ${uid}.`);
+      } else {
+        strapi.log.info(`[Bootstrap] Configuration for ${uid} is already correct. No changes made.`);
+      }
+
+      strapi.log.info(`[Bootstrap] Configuration check for ${uid} finished.`);
 
     } catch (error) {
-      strapi.log.error('Bootstrap error:', error.message, error.stack);
+      strapi.log.error('[Bootstrap] An error occurred during the configuration fix:', error);
     }
   },
 };
